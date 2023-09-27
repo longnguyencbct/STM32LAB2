@@ -254,6 +254,12 @@ HAL_TIM_Base_Start_IT(&htim2);
 	  	  case 1:
 	  		  HAL_GPIO_WritePin (EN1_GPIO_Port, EN1_Pin, GPIO_PIN_RESET);
 	  		  break;
+	  	  case 2:
+	  		  HAL_GPIO_WritePin (EN2_GPIO_Port, EN2_Pin, GPIO_PIN_RESET);
+	  		  break;
+	  	  case 3:
+	  		  HAL_GPIO_WritePin (EN3_GPIO_Port, EN3_Pin, GPIO_PIN_RESET);
+	  		  break;
 	  	  default:
 	  		  HAL_GPIO_WritePin (EN0_GPIO_Port, EN0_Pin, GPIO_PIN_RESET);
 	  		  break;
@@ -267,6 +273,12 @@ HAL_TIM_Base_Start_IT(&htim2);
 	  	  case 1:
 	  		  HAL_GPIO_WritePin (EN1_GPIO_Port, EN1_Pin, GPIO_PIN_SET);
 	  		  break;
+	  	  case 2:
+	  		  HAL_GPIO_WritePin (EN2_GPIO_Port, EN2_Pin, GPIO_PIN_SET);
+	  		  break;
+	  	  case 3:
+	  		  HAL_GPIO_WritePin (EN3_GPIO_Port, EN3_Pin, GPIO_PIN_SET);
+	  		  break;
 	  	  default:
 	  		  HAL_GPIO_WritePin (EN0_GPIO_Port, EN0_Pin, GPIO_PIN_SET);
 	  		  break;
@@ -276,7 +288,7 @@ HAL_TIM_Base_Start_IT(&htim2);
   void SetState(int i){
 	  switch(i){
 	  case 0:
-		  OffEN(1);
+		  OffEN(3);
 		  display7SEG(1);
 		  OnEN(0);
 		  break;
@@ -285,8 +297,18 @@ HAL_TIM_Base_Start_IT(&htim2);
 		  display7SEG(2);
 		  OnEN(1);
 		  break;
-	  default:
+	  case 2:
 		  OffEN(1);
+		  display7SEG(3);
+		  OnEN(2);
+		  break;
+	  case 3:
+		  OffEN(2);
+		  display7SEG(0);
+		  OnEN(3);
+		  break;
+	  default:
+		  OffEN(3);
 		  display7SEG(1);
 		  OnEN(0);
 		  break;
@@ -297,21 +319,26 @@ HAL_TIM_Base_Start_IT(&htim2);
 	void ToggleLedRed(){
 		HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
 	}
+	void ToggleP_DOT(){
+		HAL_GPIO_TogglePin(P_DOT_GPIO_Port, P_DOT_Pin);
+	}
 ///////////////////////////////////////////
 	const int c1_number = 100; // 100=1s
 	const int c2_number = 50; // 100=1s
 	setTimer1(c1_number);
 	setTimer2(c2_number);
 	int currState=0;
-	int init_flag=1;
+	OffEN(1);
+	OffEN(2);
+	OffEN(3);
+	display7SEG(1);
+	OnEN(0);
   while (1)
   {
-	if(init_flag==1){
-		SetState(currState);
-		init_flag=0;
-	}
+
 	if(timer1_flag==1){
 		ToggleLedRed();
+		ToggleP_DOT();
 		setTimer1(c1_number);
 	}
 	if(timer2_flag==1){
@@ -320,6 +347,12 @@ HAL_TIM_Base_Start_IT(&htim2);
 			currState=1;
 			break;
 		case 1:
+			currState=2;
+			break;
+		case 2:
+			currState=3;
+			break;
+		case 3:
 			currState=0;
 			break;
 		default:
@@ -431,14 +464,17 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LED_RED_Pin|EN0_Pin|EN1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, P_DOT_Pin|LED_RED_Pin|EN0_Pin|EN1_Pin
+                          |EN2_Pin|EN3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, P_A_Pin|P_B_Pin|P_C_Pin|P_D_Pin
                           |P_E_Pin|P_F_Pin|P_G_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : LED_RED_Pin EN0_Pin EN1_Pin */
-  GPIO_InitStruct.Pin = LED_RED_Pin|EN0_Pin|EN1_Pin;
+  /*Configure GPIO pins : P_DOT_Pin LED_RED_Pin EN0_Pin EN1_Pin
+                           EN2_Pin EN3_Pin */
+  GPIO_InitStruct.Pin = P_DOT_Pin|LED_RED_Pin|EN0_Pin|EN1_Pin
+                          |EN2_Pin|EN3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
