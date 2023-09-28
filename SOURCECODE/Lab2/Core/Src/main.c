@@ -285,35 +285,11 @@ HAL_TIM_Base_Start_IT(&htim2);
 	  }
   }
   ///////////////////////////////////////////
-  void SetState(int i){
-	  switch(i){
-	  case 0:
-		  OffEN(3);
-		  display7SEG(1);
-		  OnEN(0);
-		  break;
-	  case 1:
-		  OffEN(0);
-		  display7SEG(2);
-		  OnEN(1);
-		  break;
-	  case 2:
-		  OffEN(1);
-		  display7SEG(3);
-		  OnEN(2);
-		  break;
-	  case 3:
-		  OffEN(2);
-		  display7SEG(0);
-		  OnEN(3);
-		  break;
-	  default:
-		  OffEN(3);
-		  display7SEG(1);
-		  OnEN(0);
-		  break;
-	  }
-
+  void TurnOffAll7LEDs(){
+	  OffEN(0);
+	  OffEN(1);
+	  OffEN(2);
+	  OffEN(3);
   }
   ///////////////////////////////////////////
 	void ToggleLedRed(){
@@ -323,46 +299,60 @@ HAL_TIM_Base_Start_IT(&htim2);
 		HAL_GPIO_TogglePin(P_DOT_GPIO_Port, P_DOT_Pin);
 	}
 ///////////////////////////////////////////
+	//const int MAX_LED = 4;
+	int index_led = 1;
+	int led_buffer[4] = {1, 2, 3, 4};
+	void update7SEG(int index){
+	    switch (index){
+	        case 0:
+	            //Display the first 7SEG with led_buffer[0]
+	        	TurnOffAll7LEDs();
+	        	display7SEG(led_buffer[0]);
+	            break;
+	        case 1:
+	            //Display the second 7SEG with led_buffer[1]
+	        	TurnOffAll7LEDs();
+	        	display7SEG(led_buffer[1]);
+	            break;
+	        case 2:
+	            //Display the third 7SEG with led_buffer[2]
+	        	TurnOffAll7LEDs();
+	        	display7SEG(led_buffer[2]);
+	            break;
+	        case 3:
+	            //Display the forth 7SEG with led_buffer[3]
+	        	TurnOffAll7LEDs();
+	        	display7SEG(led_buffer[3]);
+	            break;
+	        default:
+	        	TurnOffAll7LEDs();
+	        	display7SEG(led_buffer[0]);
+	            break;
+	    }
+    	OnEN(index);
+	}
+///////////////////////////////////////////
 	const int c1_number = 100; // 100=1s
-	const int c2_number = 50; // 100=1s
+	const int c2_number = 25; // 100=1s
 	setTimer1(c1_number);
 	setTimer2(c2_number);
-	int currState=0;
-	OffEN(1);
-	OffEN(2);
-	OffEN(3);
-	display7SEG(1);
-	OnEN(0);
+
+	TurnOffAll7LEDs();
+	update7SEG(0);
   while (1)
   {
-
-	if(timer1_flag==1){
-		ToggleLedRed();
-		ToggleP_DOT();
-		setTimer1(c1_number);
-	}
-	if(timer2_flag==1){
-		switch(currState){
-		case 0:
-			currState=1;
-			break;
-		case 1:
-			currState=2;
-			break;
-		case 2:
-			currState=3;
-			break;
-		case 3:
-			currState=0;
-			break;
-		default:
-			currState=0;
-			break;
-		}
-		SetState(currState);
-		setTimer2(c2_number);
-	}
-
+	  if(timer1_flag==1){
+		  ToggleLedRed();
+		  ToggleP_DOT();
+		  setTimer1(c1_number);
+	  }
+	  if(timer2_flag==1){
+		  if(index_led>3){
+			  index_led=0;
+		  }
+		  update7SEG(index_led++);
+		  setTimer2(c2_number);
+	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
