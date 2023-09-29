@@ -331,14 +331,25 @@ HAL_TIM_Base_Start_IT(&htim2);
 	    }
     	OnEN(index);
 	}
+
 ///////////////////////////////////////////
-	const int c1_number = 100; // 100=1s
-	const int c2_number = 25; // 100=1s
+	int hour = 15, minute = 8, second = 50;
+	void updateClockBuffer(){
+		led_buffer[0]=hour/10;
+		led_buffer[1]=hour%10;
+		led_buffer[2]=minute/10;
+		led_buffer[3]=minute%10;
+	}
+///////////////////////////////////////////
+	const int c1_number = 100; // Led Red and Dot Toggle Time
+	const int c2_number = 25;   // 7SEGLEDS period
+	const int c3_number = 100; // duration of 1s (100=default)
 	setTimer1(c1_number);
 	setTimer2(c2_number);
-
+	setTimer3(c3_number);
 	TurnOffAll7LEDs();
 	update7SEG(0);
+	updateClockBuffer();
   while (1)
   {
 	  if(timer1_flag==1){
@@ -352,6 +363,22 @@ HAL_TIM_Base_Start_IT(&htim2);
 		  }
 		  update7SEG(index_led++);
 		  setTimer2(c2_number);
+	  }
+	  if(timer3_flag==1){
+		    second++;
+		    if (second >= 60){
+		        second = 0;
+		        minute++;
+		    }
+		    if(minute >= 60){
+		        minute = 0;
+		        hour++;
+		    }
+		    if(hour >=24){
+		        hour = 0;
+		    }
+		  updateClockBuffer();
+		  setTimer3(c3_number);
 	  }
     /* USER CODE END WHILE */
 
