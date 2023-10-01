@@ -412,22 +412,6 @@ HAL_TIM_Base_Start_IT(&htim2);
 	  		  break;
 	  }
   }
-  ///////////////////////////////////////////
-  void TestEx9(int i){
-	Off_ROW(0);
-	Off_ROW(1);
-	Off_ROW(2);
-	Off_ROW(4);
-	Off_ROW(5);
-	Off_ROW(6);
-	Off_ROW(7);
-	if(i==0){
-		On_ENM(3);
-		return;
-	}
-	Off_ENM(3);
-  }
-  ///////////////////////////////////////////
   void TurnOffAll7LEDs(){
 	  OffEN(0);
 	  OffEN(1);
@@ -475,6 +459,52 @@ HAL_TIM_Base_Start_IT(&htim2);
     	OnEN(index);
 	}
 
+	  ///////////////////////////////////////////
+uint8_t matrix_buffer[8] = {0x3C,0x42,0x42,0x42,0x7E,0x42,0x42,0x42};
+int RowBuffer[8]={0,0,0,0,0,0,0,0};
+void Translate_matrixbuffer_to_RowBuffer(int index){
+	if(index>7||index<0){return;}
+	uint8_t n=matrix_buffer[index];
+	for (int i=7; i>=0; i--){
+		if(n&(1<<i)){
+			RowBuffer[i] = 1;
+		}else{
+			RowBuffer[i] = 0;
+		}
+	}
+}
+void On_ALL(){
+	for(int i=0;i<8;i++){
+		On_ENM(i);
+	}
+}
+
+void OffIdx(int x, int y){
+	On_ROW(y);//on
+	Off_ENM(x);
+}
+	  ///////////////////////////////////////////
+void TestEx9(int i){
+	On_ALL();
+	OffIdx(0,2);
+	/*for(int y=0;y<1;y++){
+		Translate_matrixbuffer_to_RowBuffer(0);
+		for(int x=0;x<8;x++){
+			if(RowBuffer[x]==1){
+				OnIdx(x,1);
+			}
+		}
+	}
+	for(int y=0;y<1;y++){
+		Translate_matrixbuffer_to_RowBuffer(1);
+		for(int x=0;x<8;x++){
+			if(RowBuffer[x]==1){
+				OnIdx(x,0);
+			}
+		}
+	}*/
+}
+	  ///////////////////////////////////////////
 ///////////////////////////////////////////
 	int hour = 15, minute = 8, second = 50;
 	void updateClockBuffer(){
