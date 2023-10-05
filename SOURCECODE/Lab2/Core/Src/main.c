@@ -495,6 +495,17 @@ HAL_TIM_Base_Start_IT(&htim2);
 		}
 		Off_ENM(index);
 	}
+
+	void shiftRight_matrix_buffer(){
+		for(int i=0;i<8;i++){
+			matrix_buffer[i]=matrix_buffer[i]>>1;
+		}
+	}
+	void shiftLeft_matrix_buffer(){
+		for(int i=0;i<8;i++){
+			matrix_buffer[i]=matrix_buffer[i]<<1;
+		}
+	}
 ///////////////////////////////////////////
 
 	int hour = 15, minute = 8, second = 50;
@@ -508,11 +519,13 @@ HAL_TIM_Base_Start_IT(&htim2);
 	const int c1_number = 100; // Led Red and Dot Toggle Time
 	const int c2_number = 25;   // 7SEGLEDS period
 	const int c3_number = 100; // duration of 1s (100=default)
-	const int c4_number = 5; // Matrix timer
+	const int c4_number = 25; // Matrix timer
+	const int c5_number = c4_number*8;
 	setTimer1(c1_number);
 	setTimer2(c2_number);
 	setTimer3(c3_number);
 	setTimer4(c4_number);
+	setTimer5(c5_number);
 	TurnOffAll7LEDs();
 	update7SEG(0);
 	updateClockBuffer();
@@ -555,6 +568,9 @@ HAL_TIM_Base_Start_IT(&htim2);
 		  }
 		  setTimer4(c4_number);
 	  }
+	  /*if(timer5_flag==1){
+		  shiftLeft_matrix_buffer();
+	  }*/
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
