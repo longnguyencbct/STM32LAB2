@@ -484,49 +484,9 @@ HAL_TIM_Base_Start_IT(&htim2);
 	}
 	////////////////////////////////////////////////////////////
 	uint8_t matrix_buffer[8] = {0x3C,0x42,0x42,0x7E,0x42,0x42,0x42,0x42};
-	int currentAstate=0;
-	uint8_t A0[8] = {0x3C,0x42,0x42,0x7E,0x42,0x42,0x42,0x42};
-	uint8_t A1[8] = {0x1E,0x21,0x21,0x3F,0x21,0x21,0x21,0x21};
-	uint8_t A2[8] = {0x0F,0x90,0x90,0x9F,0x90,0x90,0x90,0x90};
-	uint8_t A3[8] = {0x87,0x48,0x48,0xCF,0x48,0x48,0x48,0x48};
-	uint8_t A4[8] = {0xC3,0x24,0x24,0xE7,0x24,0x24,0x24,0x24};
-	uint8_t A5[8] = {0xE1,0x12,0x12,0xF3,0x12,0x12,0x12,0x12};
-	uint8_t A6[8] = {0xF0,0x09,0x09,0xF9,0x09,0x09,0x09,0x09};
-	uint8_t A7[8] = {0x78,0x84,0x84,0xFC,0x84,0x84,0x84,0x84};
 	void updateArr(uint8_t Arr1[],uint8_t Arr2[]){
 		for(int i=0;i<8;i++){
 			Arr1[i]=Arr2[i];
-		}
-	}
-	void setAstate(int i){
-		switch(i){
-		case 0:
-			updateArr(matrix_buffer,A0);
-			break;
-		case 1:
-			updateArr(matrix_buffer,A1);
-			break;
-		case 2:
-			updateArr(matrix_buffer,A2);
-			break;
-		case 3:
-			updateArr(matrix_buffer,A3);
-			break;
-		case 4:
-			updateArr(matrix_buffer,A4);
-			break;
-		case 5:
-			updateArr(matrix_buffer,A5);
-			break;
-		case 6:
-			updateArr(matrix_buffer,A6);
-			break;
-		case 7:
-			updateArr(matrix_buffer,A7);
-			break;
-		default:
-			updateArr(matrix_buffer,A0);
-			break;
 		}
 	}
 	void updateLEDMatrix(int index) {
@@ -539,20 +499,21 @@ HAL_TIM_Base_Start_IT(&htim2);
 			}
 		}
 	}
-
+	uint8_t shiftRight(uint8_t a) {
+	  return (a >> 1) | ((a & 1) << 7);
+	}
+	uint8_t shiftLeft(uint8_t a) {
+	  return (a << 1) | ((a & 0x80) >> 7);
+	}
 	void shiftLeft_matrix_buffer(){
-		currentAstate--;
-		if(currentAstate<0){
-			currentAstate=7;
+		for(int i=0;i<8;i++){
+			matrix_buffer[i]=shiftLeft(matrix_buffer[i]);
 		}
-		setAstate(currentAstate);
 	}
 	void shiftRight_matrix_buffer(){
-		currentAstate++;
-		if(currentAstate>7){
-			currentAstate=0;
+		for(int i=0;i<8;i++){
+			matrix_buffer[i]=shiftRight(matrix_buffer[i]);
 		}
-		setAstate(currentAstate);
 	}
 ///////////////////////////////////////////
 
@@ -568,14 +529,17 @@ HAL_TIM_Base_Start_IT(&htim2);
 	const int c2_number = 25;   // 7SEGLEDS period
 	const int c3_number = 100; // duration of 1s (100=default)
 	const int c4_number = 25; // Matrix timer
+	const int c5_number = c4_number*9*8-1;
 	setTimer1(c1_number);
 	setTimer2(c2_number);
 	setTimer3(c3_number);
 	setTimer4(c4_number);
+	setTimer5(c5_number);
 	TurnOffAll7LEDs();
 	update7SEG(0);
 	updateClockBuffer();
 	int i_matrix=0;
+	int isLeftshift=1;
   while (1)
   {
 	  if(timer1_flag==1){
@@ -606,12 +570,34 @@ HAL_TIM_Base_Start_IT(&htim2);
 		  updateClockBuffer();
 		  setTimer3(c3_number);
 	  }
+	  if(timer5_flag==1){
+		  switch(isLeftshift){
+		  case 0:
+			  isLeftshift=1;
+			  break;
+		  case 1:
+			  isLeftshift=0;
+			  break;
+		  default:
+			  isLeftshift=0;
+		  }
+		  setTimer5(c5_number);
+	  }
 	  if(timer4_flag==1){
 		  updateLEDMatrix(i_matrix);
 		  i_matrix++;
 		  if(i_matrix>7){
 			  i_matrix=0;
-			  shiftLeft_matrix_buffer();
+			  switch(isLeftshift){
+			  		  case 0:
+			  			  shiftRight_matrix_buffer();
+			  			  break;
+			  		  case 1:
+			  			  shiftLeft_matrix_buffer();
+			  			  break;
+			  		  default:
+			  			shiftLeft_matrix_buffer();
+			  }
 		  }
 		  setTimer4(c4_number);
 	  }
