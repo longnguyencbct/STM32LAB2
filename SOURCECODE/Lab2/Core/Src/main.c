@@ -484,6 +484,51 @@ HAL_TIM_Base_Start_IT(&htim2);
 	}
 	////////////////////////////////////////////////////////////
 	uint8_t matrix_buffer[8] = {0x3C,0x42,0x42,0x7E,0x42,0x42,0x42,0x42};
+	int currentAstate=0;
+	uint8_t A0[8] = {0x3C,0x42,0x42,0x7E,0x42,0x42,0x42,0x42};
+	uint8_t A1[8] = {0x1E,0x21,0x21,0x3F,0x21,0x21,0x21,0x21};
+	uint8_t A2[8] = {0x0F,0x90,0x90,0x9F,0x90,0x90,0x90,0x90};
+	uint8_t A3[8] = {0x87,0x48,0x48,0xCF,0x48,0x48,0x48,0x48};
+	uint8_t A4[8] = {0xC3,0x24,0x24,0xE7,0x24,0x24,0x24,0x24};
+	uint8_t A5[8] = {0xE1,0x12,0x12,0xF3,0x12,0x12,0x12,0x12};
+	uint8_t A6[8] = {0xF0,0x09,0x09,0xF9,0x09,0x09,0x09,0x09};
+	uint8_t A7[8] = {0x78,0x84,0x84,0xFC,0x84,0x84,0x84,0x84};
+	void updateArr(uint8_t Arr1[],uint8_t Arr2[]){
+		for(int i=0;i<8;i++){
+			Arr1[i]=Arr2[i];
+		}
+	}
+	void setAstate(int i){
+		switch(i){
+		case 0:
+			updateArr(matrix_buffer,A0);
+			break;
+		case 1:
+			updateArr(matrix_buffer,A1);
+			break;
+		case 2:
+			updateArr(matrix_buffer,A2);
+			break;
+		case 3:
+			updateArr(matrix_buffer,A3);
+			break;
+		case 4:
+			updateArr(matrix_buffer,A4);
+			break;
+		case 5:
+			updateArr(matrix_buffer,A5);
+			break;
+		case 6:
+			updateArr(matrix_buffer,A6);
+			break;
+		case 7:
+			updateArr(matrix_buffer,A7);
+			break;
+		default:
+			updateArr(matrix_buffer,A0);
+			break;
+		}
+	}
 	void updateLEDMatrix(int index) {
 		OnALL_ROW();
 		OnALL_ENM();
@@ -497,14 +542,18 @@ HAL_TIM_Base_Start_IT(&htim2);
 	}
 
 	void shiftRight_matrix_buffer(){
-		for(int i=0;i<8;i++){
-			matrix_buffer[i]=matrix_buffer[i]>>1;
+		currentAstate--;
+		if(currentAstate<0){
+			currentAstate=7;
 		}
+		setAstate(currentAstate);
 	}
 	void shiftLeft_matrix_buffer(){
-		for(int i=0;i<8;i++){
-			matrix_buffer[i]=matrix_buffer[i]<<1;
+		currentAstate++;
+		if(currentAstate>7){
+			currentAstate=0;
 		}
+		setAstate(currentAstate);
 	}
 ///////////////////////////////////////////
 
@@ -568,9 +617,9 @@ HAL_TIM_Base_Start_IT(&htim2);
 		  }
 		  setTimer4(c4_number);
 	  }
-	  /*if(timer5_flag==1){
+	  if(timer5_flag==1){
 		  shiftLeft_matrix_buffer();
-	  }*/
+	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
