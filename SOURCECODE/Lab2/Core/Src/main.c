@@ -515,6 +515,20 @@ HAL_TIM_Base_Start_IT(&htim2);
 			matrix_buffer[i]=shiftRight(matrix_buffer[i]);
 		}
 	}
+	int isLeftshift=1;
+	void switchShiftDirection(){
+		  switch(isLeftshift){
+		  case 0:
+			  isLeftshift=1;
+			  break;
+		  case 1:
+			  isLeftshift=0;
+			  break;
+		  default:
+			  isLeftshift=1;
+			  break;
+		  }
+	}
 ///////////////////////////////////////////
 
 	int hour = 15, minute = 8, second = 50;
@@ -523,23 +537,23 @@ HAL_TIM_Base_Start_IT(&htim2);
 		led_buffer[1]=hour%10;
 		led_buffer[2]=minute/10;
 		led_buffer[3]=minute%10;
-	}
+	};
+
 ///////////////////////////////////////////
 	const int c1_number = 100; // Led Red and Dot Toggle Time
 	const int c2_number = 25;   // 7SEGLEDS period
 	const int c3_number = 100; // duration of 1s (100=default)
-	const int c4_number = 25; // Matrix timer
-	const int c5_number = c4_number*9*8-1;
+	const int c4_number = 10; // Matrix timer
 	setTimer1(c1_number);
 	setTimer2(c2_number);
 	setTimer3(c3_number);
 	setTimer4(c4_number);
-	setTimer5(c5_number);
 	TurnOffAll7LEDs();
 	update7SEG(0);
 	updateClockBuffer();
 	int i_matrix=0;
-	int isLeftshift=1;
+	updateLEDMatrix(i_matrix);
+	int numberOfcycles=0;
   while (1)
   {
 	  if(timer1_flag==1){
@@ -570,34 +584,28 @@ HAL_TIM_Base_Start_IT(&htim2);
 		  updateClockBuffer();
 		  setTimer3(c3_number);
 	  }
-	  if(timer5_flag==1){
-		  switch(isLeftshift){
-		  case 0:
-			  isLeftshift=1;
-			  break;
-		  case 1:
-			  isLeftshift=0;
-			  break;
-		  default:
-			  isLeftshift=0;
-		  }
-		  setTimer5(c5_number);
-	  }
 	  if(timer4_flag==1){
 		  updateLEDMatrix(i_matrix);
 		  i_matrix++;
 		  if(i_matrix>7){
 			  i_matrix=0;
-			  switch(isLeftshift){
-			  		  case 0:
-			  			  shiftRight_matrix_buffer();
-			  			  break;
-			  		  case 1:
-			  			  shiftLeft_matrix_buffer();
-			  			  break;
-			  		  default:
-			  			shiftLeft_matrix_buffer();
+			  numberOfcycles++;
+			  if(numberOfcycles>8){
+				  numberOfcycles=1;
+				  switchShiftDirection();
 			  }
+			  switch(isLeftshift){
+			  			  case 0:
+			  				  shiftRight_matrix_buffer();
+			  				  break;
+			  			  case 1:
+			  				  shiftLeft_matrix_buffer();
+			  				  break;
+
+			  			  default:
+			  				  shiftLeft_matrix_buffer();
+			  				  break;
+			  			  }
 		  }
 		  setTimer4(c4_number);
 	  }
